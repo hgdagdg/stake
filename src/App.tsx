@@ -4,6 +4,10 @@ import { Layout } from './components/Layout';
 import { AuthForm } from './components/AuthForm';
 import { HomePage } from './pages/HomePage';
 import { CreateRoomPage } from './pages/CreateRoomPage';
+import { OrganiseRoomPage } from './pages/OrganiseRoomPage';
+import { RoomPage } from './pages/RoomPage';
+import { JoinRoomPage } from './pages/JoinRoomPage';
+import { LiveDebatePage } from './pages/LiveDebatePage';
 import { ArchivePage } from './pages/ArchivePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuth } from './hooks/useAuth';
@@ -33,6 +37,24 @@ function App() {
         <Route path="/create" element={
           <Layout>
             <CreateRoomPage />
+          </Layout>
+        } />
+        <Route path="/room/:roomId/organise" element={
+          <Layout>
+            <OrganiseRoomPage />
+          </Layout>
+        } />
+        <Route path="/room/:roomId/join" element={
+          <Layout>
+            <JoinRoomPage />
+          </Layout>
+        } />
+        <Route path="/room/:roomId/live" element={
+          <LiveDebatePage />
+        } />
+        <Route path="/room/:roomId" element={
+          <Layout>
+            <RoomPage />
           </Layout>
         } />
         <Route path="/archive" element={

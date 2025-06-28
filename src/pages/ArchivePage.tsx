@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Users, MessageCircle, TrendingUp, Search, Filter } from 'lucide-react';
@@ -8,10 +8,19 @@ export function ArchivePage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'ended'>('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'waiting' | 'active' | 'ended'>('all');
 
   useEffect(() => {
     fetchRooms();
+  }, []);
+
+  // Refresh when coming back to the page
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchRooms();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const fetchRooms = async () => {
@@ -19,7 +28,6 @@ export function ArchivePage() {
       const { data, error } = await supabase
         .from('rooms')
         .select('*')
-        .in('status', ['active', 'ended'])
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -87,10 +95,12 @@ export function ArchivePage() {
               <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-3.5" />
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'ended')}
+                onChange={(e) => setFilterStatus(e.target.value as 'all' | 'waiting' | 'active' | 'ended')}
+                title="Filter debates by status"
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white"
               >
                 <option value="all">All Debates</option>
+                <option value="waiting">Starting Soon</option>
                 <option value="active">Active Debates</option>
                 <option value="ended">Completed Debates</option>
               </select>
@@ -132,9 +142,11 @@ export function ArchivePage() {
                   <div className={`px-3 py-1 rounded-full text-xs font-medium ${
                     room.status === 'active' 
                       ? 'bg-green-100 text-green-700' 
+                      : room.status === 'waiting'
+                      ? 'bg-yellow-100 text-yellow-700'
                       : 'bg-gray-100 text-gray-700'
                   }`}>
-                    {room.status === 'active' ? 'Live' : 'Ended'}
+                    {room.status === 'active' ? 'Live' : room.status === 'waiting' ? 'Starting Soon' : 'Ended'}
                   </div>
                   <div className="flex items-center text-sm text-gray-500">
                     <Clock className="w-4 h-4 mr-1" />
@@ -168,10 +180,16 @@ export function ArchivePage() {
                 </div>
 
                 <Link
-                  to={room.status === 'active' ? `/room/${room.id}` : `/room/${room.id}/summary`}
+                  to={
+                    room.status === 'waiting' ? `/room/${room.id}` :
+                    room.status === 'active' ? `/room/${room.id}` : 
+                    `/room/${room.id}/summary`
+                  }
                   className="w-full flex items-center justify-center py-3 px-4 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors font-medium"
                 >
-                  {room.status === 'active' ? 'Join Debate' : 'View Summary'}
+                  {room.status === 'waiting' ? 'View Room' : 
+                   room.status === 'active' ? 'Join Debate' : 
+                   'View Summary'}
                   <TrendingUp className="w-4 h-4 ml-2" />
                 </Link>
               </motion.div>
